@@ -3,22 +3,22 @@ import { Person } from '../types';
 import { useParams } from 'react-router-dom';
 import { Loader } from '../components/Loader';
 import { PeopleTable } from '../components/PeopleTable';
-
-const URL_API =
-  'https://mate-academy.github.io/react_people-table/api/people.json';
+import { getPeople } from '../api';
 
 export const PeoplePage: FC = () => {
   const [people, setPeople] = useState<Person[]>([]);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const { slug } = useParams();
 
   useEffect(() => {
-    const fetchPeople = async () => {
+    const loadPeople = async () => {
+      setLoading(true);
+      setError('');
+
       try {
-        const response = await fetch(URL_API);
-        const data = await response.json();
+        const data = await getPeople();
 
         setPeople(data);
       } catch {
@@ -28,7 +28,7 @@ export const PeoplePage: FC = () => {
       }
     };
 
-    fetchPeople();
+    loadPeople();
   }, []);
 
   return (
@@ -37,18 +37,16 @@ export const PeoplePage: FC = () => {
 
       <div className="block">
         {loading && <Loader />}
-
         {error && (
-          <p data-cy="peopleLoadingError" className="has-text-danger">
+          <p className="has-text-danger" data-cy="peopleLoadingError">
             {error}
           </p>
         )}
-
-        {!loading && people.length === 0 && (
+        {!loading && !error && people.length === 0 && (
           <p data-cy="noPeopleMessage">There are no people on the server</p>
         )}
 
-        {!loading && people.length > 0 && (
+        {!loading && !error && people.length > 0 && (
           <PeopleTable people={people} selectedSlug={slug} />
         )}
       </div>
